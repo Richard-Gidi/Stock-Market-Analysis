@@ -49,30 +49,39 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better UI
 st.markdown("""
     <style>
+    /* Main background and general text */
     .main {
-        padding: 2rem;
+        background-color: #0e0e11;  /* dark theme */
+        color: white;
     }
-    .stMetric {
+
+    /* Metrics container card (light) */
+    div[data-testid="metric-container"] {
         background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
+        color: black !important;
     }
-    .chat-message {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
+
+    /* Metric label (e.g., "Average Sentiment") */
+    div[data-testid="metric-container"] > label {
+        color: black !important;
+        font-weight: bold;
     }
-    .user-message {
-        background-color: #e6f3ff;
-    }
-    .assistant-message {
-        background-color: #f0f0f0;
+
+    /* Metric value (e.g., "0.33") */
+    div[data-testid="metric-container"] > div {
+        color: black !important;
+        font-size: 1.5rem;
+        font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
+
+
+
 
 # Initialize session state for chat
 if 'chat_history' not in st.session_state:
@@ -98,7 +107,7 @@ def load_data():
 @st.cache_data
 def load_models():
     try:
-        model = joblib.load("Models/xgboost.pkl")
+        model = joblib.load("Models/xgboost_model.pkl")
         return model
     except Exception as e:
         st.error(f"Error loading model: {str(e)}")
@@ -161,13 +170,15 @@ def analyze_portfolio(stocks_data, weights):
     portfolio_returns['Total'] = portfolio_returns.sum(axis=1)
     return portfolio_returns
 
-# Function to perform advanced sentiment analysis
+# Make sure to install lxml first: pip install lxml
+
 def advanced_sentiment_analysis(stock_name):
     try:
         # Get news articles
         url = f"https://news.google.com/rss/search?q={stock_name}+stock&hl=en-US&gl=US&ceid=US:en"
         response = requests.get(url)
-        soup = BeautifulSoup(response.content, 'xml')
+        soup = BeautifulSoup(response.content, 'xml')  # Requires lxml or xml parser
+
         items = soup.find_all('item')
         
         # Initialize sentiment analyzers
@@ -187,6 +198,10 @@ def advanced_sentiment_analysis(stock_name):
             blob = TextBlob(title + " " + description)
             subjectivity_scores.append(blob.sentiment.subjectivity)
         
+        if not sentiments:
+            st.warning("No news articles found for sentiment analysis.")
+            return None
+
         return {
             'avg_sentiment': np.mean(sentiments),
             'sentiment_std': np.std(sentiments),
@@ -196,6 +211,7 @@ def advanced_sentiment_analysis(stock_name):
     except Exception as e:
         st.warning(f"Could not perform sentiment analysis: {str(e)}")
         return None
+
 
 # Function to prepare prediction data
 def prepare_prediction_data(df, stock_name):
