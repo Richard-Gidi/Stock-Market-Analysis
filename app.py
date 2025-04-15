@@ -81,8 +81,6 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 
-
-
 # Initialize session state for chat
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
@@ -314,6 +312,14 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("Portfolio Analysis")
     
+    # Add explanation for portfolio analysis
+    st.markdown("""
+    ### What is Portfolio Analysis?
+    Portfolio analysis helps you understand how your investments work together. A well-diversified portfolio can reduce risk while maintaining returns. 
+    
+    **Why it matters**: Proper allocation can help protect your investments during market downturns while capturing growth during upswings.
+    """)
+    
     # Portfolio weights input
     st.write("Enter portfolio weights (must sum to 1):")
     weights = {}
@@ -339,28 +345,110 @@ with tab1:
         fig_portfolio.update_layout(title='Portfolio Performance', height=500)
         st.plotly_chart(fig_portfolio, use_container_width=True)
         
-        # Portfolio metrics
+        # Portfolio metrics with explanations
         portfolio_metrics = calculate_advanced_risk_metrics(portfolio_returns['Total'])
         st.write("Portfolio Metrics:")
+        
+        # Add metrics explanations
+        st.markdown("""
+        ### Understanding Portfolio Metrics
+        """)
+        
         col1, col2, col3 = st.columns(3)
-        for i, (metric, value) in enumerate(portfolio_metrics.items()):
-            with col1 if i % 3 == 0 else col2 if i % 3 == 1 else col3:
-                st.metric(metric, f"{value:.4f}")
+        
+        # Show metrics with explanations
+        with col1:
+            st.metric("Annualized Return", f"{portfolio_metrics['Annualized Return']:.4f}")
+            st.markdown("**What it means**: Your portfolio's yearly return rate. Higher is better. This number shows how much your investments grow annually.")
+            
+            st.metric("Sharpe Ratio", f"{portfolio_metrics['Sharpe Ratio']:.4f}")
+            st.markdown("**What it means**: Return per unit of risk. Above 1.0 is good, above 2.0 is excellent. Higher values indicate better risk-adjusted returns.")
+            
+            st.metric("Maximum Drawdown", f"{portfolio_metrics['Maximum Drawdown']:.4f}")
+            st.markdown("**What it means**: The largest drop from peak to trough. Lower values are better. This shows your worst-case scenario loss.")
+        
+        with col2:
+            st.metric("Annualized Volatility", f"{portfolio_metrics['Annualized Volatility']:.4f}")
+            st.markdown("**What it means**: How much your portfolio's returns fluctuate annually. Lower volatility generally means more stable returns.")
+            
+            st.metric("Sortino Ratio", f"{portfolio_metrics['Sortino Ratio']:.4f}")
+            st.markdown("**What it means**: Similar to Sharpe Ratio but only considers downside risk. Higher values indicate better returns for downside risk taken.")
+            
+            st.metric("Skewness", f"{portfolio_metrics['Skewness']:.4f}")
+            st.markdown("**What it means**: Positive values indicate more upside returns, negative values indicate more downside returns.")
+        
+        with col3:
+            st.metric("VaR_95", f"{portfolio_metrics['VaR_95']:.4f}")
+            st.markdown("**What it means**: With 95% confidence, your portfolio won't lose more than this percentage in a single day. Lower absolute values are better.")
+            
+            st.metric("CVaR_95", f"{portfolio_metrics['CVaR_95']:.4f}")
+            st.markdown("**What it means**: The expected loss when losses exceed the VaR threshold. This shows how bad your worst days might be.")
+            
+            st.metric("Kurtosis", f"{portfolio_metrics['Kurtosis']:.4f}")
+            st.markdown("**What it means**: Higher values indicate more extreme returns (positive or negative). A normal distribution has kurtosis = 0.")
+        
+        # Add action recommendations based on metrics
+        st.markdown("""
+        ### What Actions Can You Take?
+        
+        - **If Sharpe Ratio is low** (<1.0): Consider rebalancing your portfolio to reduce risk or find assets with better risk-return profiles.
+        - **If Maximum Drawdown is high** (>20%): Your portfolio may be too volatile for your risk tolerance. Consider adding more defensive assets.
+        - **If Skewness is negative**: Your portfolio has more frequent small gains but occasional large losses. Consider adding assets with positive skew.
+        - **If Annualized Return is lower than expected**: Review your asset allocation and consider increasing allocation to higher growth assets.
+        
+        Remember that higher returns typically come with higher risk. The ideal portfolio balances your return goals with your risk tolerance.
+        """)
 
 # Tab 2: Risk Analysis
 with tab2:
     st.subheader("Advanced Risk Analysis")
     
+    # Add explanation for risk analysis
+    st.markdown("""
+    ### Understanding Risk Analysis
+    
+    Risk analysis helps you understand potential downsides of your investments. This analysis goes beyond simple volatility measures to give you a comprehensive view of your investment risks.
+    
+    **Why it matters**: Understanding risk helps you make better investment decisions and avoid unexpected losses.
+    """)
+    
     # Calculate advanced risk metrics
     returns = filtered_data['Close'].pct_change().dropna()
     risk_metrics = calculate_advanced_risk_metrics(returns)
     
-    # Display risk metrics
+    # Display risk metrics with explanations
     st.write("Risk Metrics:")
     col1, col2, col3 = st.columns(3)
-    for i, (metric, value) in enumerate(risk_metrics.items()):
-        with col1 if i % 3 == 0 else col2 if i % 3 == 1 else col3:
-            st.metric(metric, f"{value:.4f}")
+    
+    with col1:
+        st.metric("Annualized Return", f"{risk_metrics['Annualized Return']:.4f}")
+        st.markdown("**What it means**: The yearly return rate for this stock. Higher is better.")
+        
+        st.metric("Sharpe Ratio", f"{risk_metrics['Sharpe Ratio']:.4f}")
+        st.markdown("**What it means**: Return per unit of risk. Above 1.0 is good. This helps you compare investments with different risk levels.")
+        
+        st.metric("VaR_95", f"{risk_metrics['VaR_95']:.4f}")
+        st.markdown("**What it means**: Value at Risk - With 95% confidence, your daily loss won't exceed this percentage. This is your likely worst-case daily scenario.")
+    
+    with col2:
+        st.metric("Annualized Volatility", f"{risk_metrics['Annualized Volatility']:.4f}")
+        st.markdown("**What it means**: How much returns fluctuate annually. Higher values indicate a more volatile investment.")
+        
+        st.metric("Maximum Drawdown", f"{risk_metrics['Maximum Drawdown']:.4f}")
+        st.markdown("**What it means**: The largest drop from peak to trough. This represents the worst historical loss you would have experienced.")
+        
+        st.metric("VaR_99", f"{risk_metrics['VaR_99']:.4f}")
+        st.markdown("**What it means**: With 99% confidence, your daily loss won't exceed this percentage. This is your extreme worst-case daily scenario.")
+        
+    with col3:
+        st.metric("Sortino Ratio", f"{risk_metrics['Sortino Ratio']:.4f}")
+        st.markdown("**What it means**: Similar to Sharpe Ratio but only penalizes downside volatility. Better for comparing investments with different downside risks.")
+        
+        st.metric("Skewness", f"{risk_metrics['Skewness']:.4f}")
+        st.markdown("**What it means**: Distribution symmetry of returns. Positive values indicate more frequent small losses and occasional large gains.")
+        
+        st.metric("CVaR_95", f"{risk_metrics['CVaR_95']:.4f}")
+        st.markdown("**What it means**: Conditional Value at Risk - The average loss when losses exceed VaR. This shows how bad your worst days might be.")
     
     # Risk visualization
     fig_risk = make_subplots(rows=2, cols=2, subplot_titles=("Returns Distribution", "Cumulative Returns",
@@ -387,23 +475,71 @@ with tab2:
     
     fig_risk.update_layout(height=800, showlegend=False)
     st.plotly_chart(fig_risk, use_container_width=True)
+    
+    # Add explanations for charts
+    st.markdown("""
+    ### Understanding the Risk Charts
+    
+    **Returns Distribution**: Shows how daily returns are distributed. A wider distribution indicates higher volatility. Skewed distributions (not symmetrical) can indicate higher risk of extreme outcomes.
+    
+    **Cumulative Returns**: Shows how your investment would have grown over time. Steeper upward slopes indicate stronger performance periods.
+    
+    **Rolling Volatility**: Shows how volatility changes over time. Spikes indicate periods of market stress or uncertainty.
+    
+    **Drawdown**: Shows periods of decline from previous peaks. Deeper drawdowns indicate more severe market corrections or crashes.
+    
+    ### What Actions Can You Take?
+    
+    - **If Volatility is too high for your comfort**: Consider adding more stable assets to your portfolio or using hedging strategies.
+    - **If Maximum Drawdown is larger than you can tolerate**: Reassess your risk tolerance or add uncorrelated assets to reduce overall portfolio drawdowns.
+    - **If VaR values are concerning**: Consider position sizing to limit potential losses to acceptable amounts.
+    - **If Sharpe/Sortino ratios are low**: Look for alternative investments with better risk-adjusted returns.
+    
+    Remember that different market environments favor different investment styles. What worked in the past may not work in the future.
+    """)
 
 # Tab 3: Market Sentiment
 with tab3:
     st.subheader("Advanced Market Sentiment Analysis")
     
+    # Add explanation for sentiment analysis
+    st.markdown("""
+    ### Understanding Market Sentiment
+    
+    Market sentiment analysis evaluates the mood and emotions of investors toward a stock by analyzing news articles and social media. Sentiment can often drive short-term price movements.
+    
+    **Why it matters**: Sentiment can predict price movements before they're reflected in technical indicators, giving you an edge in timing decisions.
+    """)
+    
     # Get advanced sentiment analysis
     sentiment_data = advanced_sentiment_analysis(selected_stock)
     
     if sentiment_data:
-        # Display sentiment metrics
+        # Display sentiment metrics with explanations
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Average Sentiment", f"{sentiment_data['avg_sentiment']:.4f}")
+            st.markdown("""
+            **What it means**: Ranges from -1 (extremely negative) to +1 (extremely positive). 
+            - Above 0.3: Strongly positive news coverage
+            - 0 to 0.3: Mildly positive coverage
+            - -0.3 to 0: Mildly negative coverage
+            - Below -0.3: Strongly negative coverage
+            """)
         with col2:
             st.metric("Sentiment Volatility", f"{sentiment_data['sentiment_std']:.4f}")
+            st.markdown("""
+            **What it means**: How much sentiment varies across news articles. 
+            - High values: Mixed or contradicting news coverage
+            - Low values: Consistent sentiment across news sources
+            """)
         with col3:
             st.metric("Subjectivity", f"{sentiment_data['subjectivity']:.4f}")
+            st.markdown("""
+            **What it means**: How opinionated the news coverage is (0 = objective facts, 1 = highly subjective opinions).
+            - High values: More opinion-based coverage, potentially less reliable
+            - Low values: More fact-based coverage, potentially more reliable
+            """)
         
         # Sentiment distribution
         fig_sentiment = go.Figure()
@@ -423,10 +559,47 @@ with tab3:
                                 'value': sentiment_data['avg_sentiment']}}))
         
         st.plotly_chart(fig_sentiment, use_container_width=True)
+        
+        # Add action recommendations
+        st.markdown("""
+        ### What Actions Can You Take?
+        
+        **When Sentiment is Positive (>0.3):**
+        - Short-term investors might consider taking advantage of positive momentum
+        - Consider whether positive news is already priced in
+        - Watch for overly optimistic sentiment which might indicate overvaluation
+        
+        **When Sentiment is Negative (<-0.3):**
+        - Assess if negative news presents a buying opportunity for fundamentally sound companies
+        - Consider whether sentiment might worsen before improving
+        - Check if the negative sentiment is justified by fundamentals
+        
+        **When Sentiment is Mixed (High Volatility):**
+        - Research further to understand conflicting viewpoints
+        - Consider waiting for clarity before making significant moves
+        - Look for other indicators to confirm or reject sentiment signals
+        
+        **When Subjectivity is High (>0.6):**
+        - Give more weight to hard data and less to news sentiment
+        - Look for more objective sources of information
+        
+        Remember that sentiment often drives short-term price movements, while fundamentals matter more in the long run.
+        """)
 
 # Tab 4: Price Prediction
 with tab4:
     st.subheader("Advanced Price Prediction")
+    
+    # Add explanation for price prediction
+    st.markdown("""
+    ### Understanding Price Prediction
+    
+    This analysis uses machine learning models to forecast potential future stock prices based on historical patterns, technical indicators, and market conditions.
+    
+    **Why it matters**: While no prediction is guaranteed, these forecasts can help you understand potential price movements and plan your investment strategy accordingly.
+    
+    **Note**: All predictions are estimates and should be used as one of many tools in your investment decision-making process.
+    """)
     
     # Prediction settings
     col1, col2 = st.columns(2)
@@ -537,6 +710,8 @@ with tab4:
                             textposition='top center',
                             showlegend=False
                         ))
+                    
+                    # Add confidence intervals (
                     
                     # Add confidence intervals (assuming 95% confidence)
                     confidence_interval = 0.05  # 5% confidence interval
