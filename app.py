@@ -36,6 +36,7 @@ from scipy.stats import skew, kurtosis
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.arima.model import ARIMA
 import joblib
+import time
 
 # Download required NLTK data
 nltk.download('vader_lexicon')
@@ -221,23 +222,25 @@ def prepare_prediction_data(df, stock_name):
     
     return stock_data
 
-# Function to get real-time market data
-def get_realtime_data(symbol):
-    try:
-        stock = yf.Ticker(symbol)
-        info = stock.info
-        return {
-            'current_price': info.get('currentPrice', 0),
-            'day_high': info.get('dayHigh', 0),
-            'day_low': info.get('dayLow', 0),
-            'volume': info.get('volume', 0),
-            'market_cap': info.get('marketCap', 0),
-            'pe_ratio': info.get('trailingPE', 0),
-            'dividend_yield': info.get('dividendYield', 0)
-        }
-    except Exception as e:
-        st.warning(f"Could not fetch real-time data: {str(e)}")
-        return None
+def get_realtime_data(symbol, retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            stock = yf.Ticker(symbol)
+            info = stock.info
+            return {
+                'current_price': info.get('currentPrice', 0),
+                'day_high': info.get('dayHigh', 0),
+                'day_low': info.get('dayLow', 0),
+                'volume': info.get('volume', 0),
+                'market_cap': info.get('marketCap', 0),
+                'pe_ratio': info.get('trailingPE', 0),
+                'dividend_yield': info.get('dividendYield', 0)
+            }
+        except Exception as e:
+            st.warning(f"Attempt {attempt+1} failed: {str(e)}")
+            time.sleep(delay)
+    st.error("Could not fetch real-time data after multiple attempts.")
+    return None
 
 # Function to generate AI response
 def generate_ai_response(user_input, context):
